@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Detalle Producto{% endblock %}
+{% block content %}
+<h2>{{ producto.nombre }}</h2>
+
+<p>ID: {{ producto.id }}</p>
+<p>Ubicación: {{ producto.ubicacion }}</p>
+<p>Cantidad: {{ producto.cantidad }}</p>
+
+<form method="POST">
+    <label for="cantidad">Actualizar cantidad</label>
+    <input type="number" id="cantidad" name="cantidad" value="{{ producto.cantidad }}">
+
+    <label for="ubicacion">Actualizar ubicación</label>
+    <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion }}">
+
+    <button type="submit" class="btn-success">Actualizar</button>
+</form>
+
+<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Menú</button></a>
+{% endblock %}

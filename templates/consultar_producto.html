@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Consultar Producto{% endblock %}
+{% block content %}
+<h2>Consultar Producto</h2>
+<form method="POST">
+    <label for="codigo">Código</label>
+    <input type="text" id="codigo" name="codigo" placeholder="Código del producto">
+    <button type="submit" class="btn-primary">Consultar</button>
+    <button type="submit" class="btn-secondary" name="ver_todos">Ver todos</button>
+</form>
+
+{% for p in productos %}
+<div class="producto-card">
+    <p><strong>{{ p.nombre }}</strong></p>
+    <p>ID: {{ p.id }} | Cantidad: {{ p.cantidad }} | Ubicación: {{ p.ubicacion }}</p>
+    <a href="{{ url_for('detalle_producto', producto_id=p.id) }}"><button class="btn-primary">Ver detalle</button></a>
+</div>
+{% endfor %}
+
+<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Menú</button></a>
+{% endblock %}

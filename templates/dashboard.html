@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2>Bienvenido, {{ usuario }}</h2>
+
+<div class="button-group">
+    <a href="{{ url_for('consultar_producto') }}"><button class="btn-primary">Consultar producto</button></a>
+    <a href="{{ url_for('historial') }}"><button class="btn-secondary">Historial</button></a>
+    <a href="{{ url_for('opciones') }}"><button class="btn-secondary">Opciones</button></a>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Opciones{% endblock %}
+
+{% block content %}
+<h2>Opciones</h2>
+
+<p>
+    <a href="{{ url_for('logout') }}"><button class="btn-secondary">Cerrar sesión</button></a>
+</p>
+
+<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Volver al dashboard</button></a>
+{% endblock %}

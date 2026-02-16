@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Historial{% endblock %}
+
+{% block content %}
+<h2>Historial de acciones</h2>
+
+{% if rows and rows|length > 0 %}
+<div class="table-wrapper">
+<table>
+    <thead>
+        <tr>
+            <th>Timestamp (UTC)</th>
+            <th>Acción</th>
+            <th>Producto ID</th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Old Cantidad</th>
+            <th>New Cantidad</th>
+            <th>Old Ubicación</th>
+            <th>New Ubicación</th>
+            <th>Resultados</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td>{{ r.timestamp }}</td>
+            <td>{{ r.action }}</td>
+            <td>{{ r.producto_id }}</td>
+            <td>{{ r.codigo }}</td>
+            <td>{{ r.nombre }}</td>
+            <td>{{ r.old_cantidad }}</td>
+            <td>{{ r.new_cantidad }}</td>
+            <td>{{ r.old_ubicacion }}</td>
+            <td>{{ r.new_ubicacion }}</td>
+            <td>{{ r.results_count }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% else %}
+<p>No hay entradas en el historial.</p>
+{% endif %}
+
+<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Volver</button></a>
+{% endblock %}
