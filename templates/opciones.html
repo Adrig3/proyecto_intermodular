@@ -3,11 +3,17 @@
 {% block title %}Opciones{% endblock %}
 
 {% block content %}
-<h2>Opciones</h2>
+<h2 class="page-title">Opciones</h2>
 
-<p>
+{% if session.get('usuario_nombre') %}
+<div class="user-info card">
+    <p class="muted" style="margin-bottom:0.25rem">Usuario actual</p>
+    <p style="font-size:1.125rem;font-weight:600;margin:0">{{ session.get('usuario_nombre') }}</p>
+</div>
+{% endif %}
+
+<div class="button-group" style="margin-top:1rem">
+    <a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Volver al inicio</button></a>
     <a href="{{ url_for('logout') }}"><button class="btn-secondary">Cerrar sesión</button></a>
-</p>
-
-<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Volver al dashboard</button></a>
+</div>
 {% endblock %}

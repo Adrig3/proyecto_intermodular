@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h2>Bienvenido, {{ usuario }}</h2>
+<h2 class="page-title">Bienvenido, {{ usuario }}</h2>
+<p class="muted" style="margin-bottom:1rem">Gestiona el inventario del almacén desde el menú principal.</p>
 
 <div class="button-group">
     <a href="{{ url_for('consultar_producto') }}"><button class="btn-primary">Consultar producto</button></a>

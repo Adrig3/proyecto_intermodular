@@ -3,7 +3,7 @@
 {% block title %}Historial{% endblock %}
 
 {% block content %}
-<h2>Historial de acciones</h2>
+<h2 class="page-title">Historial de acciones</h2>
 
 {% if rows and rows|length > 0 %}
 <div class="table-wrapper">
@@ -41,8 +41,12 @@
 </table>
 </div>
 {% else %}
-<p>No hay entradas en el historial.</p>
+<div class="card">
+    <p class="muted">No hay entradas en el historial.</p>
+</div>
 {% endif %}
 
-<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Volver</button></a>
+<div style="margin-top:1rem">
+    <a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Volver al inicio</button></a>
+</div>
 {% endblock %}

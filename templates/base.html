@@ -19,18 +19,15 @@
         <header class="topbar">
             <div class="nav">
                 <button class="icon-btn" aria-label="menu" onclick="document.getElementById('main-submenu').classList.toggle('open')">☰</button>
-                <div class="title">Inventario</div>
+                <div class="title"></div>
             </div>
             <div class="actions">
-                {% if session.get('usuario_nombre') %}
-                    <div style="font-size:.95rem;margin-right:.5rem">{{ session.get('usuario_nombre') }}</div>
-                {% endif %}
-                <a href="{{ url_for('logout') }}"><button class="icon-btn">Salir</button></a>
+                <a href="{{ url_for('logout') }}" class="btn-logout-link"><button class="btn-logout" type="button">Cerrar Sesión</button></a>
             </div>
         </header>
 
-        <div id="main-submenu" class="submenu panel" aria-hidden="true" style="position:relative;margin-top:.6rem">
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+    <div id="main-submenu" class="submenu panel" aria-hidden="true" style="position:relative">
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
                 <a class="link" href="{{ url_for('dashboard') }}">Inicio</a>
                 <a class="link" href="{{ url_for('consultar_producto') }}">Consultar</a>
                 <a class="link" href="{{ url_for('historial') }}">Historial</a>

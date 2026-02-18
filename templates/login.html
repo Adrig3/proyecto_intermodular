@@ -4,14 +4,18 @@
 
 {% block content %}
 <h2>Iniciar Sesión</h2>
-<form method="POST">
-    <label for="correo">Correo</label>
-    <input type="email" id="correo" name="correo" placeholder="tu@email.com" required>
-
-    <label for="contrasena">Contraseña</label>
-    <input type="password" id="contrasena" name="contrasena" placeholder="********" required>
-
-    <button type="submit" class="btn-primary">Login</button>
-    <a href="{{ url_for('register') }}"><button type="button" class="btn-secondary">Registrarse</button></a>
+<form method="POST" class="form-card">
+    <div>
+        <label for="correo">Correo</label>
+        <input type="email" id="correo" name="correo" placeholder="tu@email.com" required>
+    </div>
+    <div>
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena" name="contrasena" placeholder="********" required>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-primary">Iniciar sesión</button>
+        <a href="{{ url_for('register') }}"><button type="button" class="btn-secondary">Registrarse</button></a>
+    </div>
 </form>
 {% endblock %}

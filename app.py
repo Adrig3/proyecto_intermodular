@@ -229,13 +229,21 @@ def admin_panel():
     if not session.get('user_id') or not session.get('esAdmin'):
         flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
         return redirect(url_for('login'))
-    # Listar productos para el panel de administración
+    return render_template('admin.html')
+
+
+@app.route('/admin/productos')
+def admin_productos():
+    """Pantalla dedicada para gestionar (listar, editar, borrar) todos los productos."""
+    if not session.get('user_id') or not session.get('esAdmin'):
+        flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
+        return redirect(url_for('login'))
     db = SessionLocal()
     productos = db.query(Producto).all()
     productos_data = [SimpleNamespace(id=p.id, nombre=p.nombre, codigo=p.codigo,
                                        cantidad=p.cantidad, ubicacion=p.ubicacion) for p in productos]
     db.close()
-    return render_template('admin.html', productos=productos_data)
+    return render_template('admin_productos.html', productos=productos_data)
 
 
 @app.route('/admin/add', methods=['POST'])
@@ -302,7 +310,7 @@ def admin_edit(producto_id):
     if not producto:
         db.close()
         flash('Producto no encontrado', 'danger')
-        return redirect(url_for('admin_panel'))
+        return redirect(url_for('admin_productos'))
 
     if request.method == 'POST':
         old_cantidad = producto.cantidad
@@ -338,7 +346,7 @@ def admin_edit(producto_id):
             flash(f'Error actualizando producto: {e}', 'danger')
         finally:
             db.close()
-        return redirect(url_for('admin_panel'))
+        return redirect(url_for('admin_productos'))
 
     # GET -> mostrar formulario
     producto_obj = SimpleNamespace(id=producto.id, nombre=producto.nombre, codigo=producto.codigo,
@@ -382,7 +390,7 @@ def admin_delete(producto_id):
     finally:
         db.close()
 
-    return redirect(url_for('admin_panel'))
+    return redirect(url_for('admin_productos'))
 
 
 if __name__ == "__main__":

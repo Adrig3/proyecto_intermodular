@@ -1,21 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Detalle Producto{% endblock %}
 {% block content %}
-<h2>{{ producto.nombre }}</h2>
+<h2 class="page-title">{{ producto.nombre }}</h2>
 
-<p>ID: {{ producto.id }}</p>
-<p>Ubicación: {{ producto.ubicacion }}</p>
-<p>Cantidad: {{ producto.cantidad }}</p>
+<div class="card" style="margin-bottom:1.5rem">
+    <p><strong>Cantidad:</strong> {{ producto.cantidad }}</p>
+    <p><strong>Ubicación:</strong> {{ producto.ubicacion or '-' }}</p>
+</div>
 
-<form method="POST">
-    <label for="cantidad">Actualizar cantidad</label>
-    <input type="number" id="cantidad" name="cantidad" value="{{ producto.cantidad }}">
-
-    <label for="ubicacion">Actualizar ubicación</label>
-    <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion }}">
-
-    <button type="submit" class="btn-success">Actualizar</button>
+<form method="POST" class="form-card">
+    <div>
+        <label for="cantidad">Actualizar cantidad</label>
+        <input type="number" id="cantidad" name="cantidad" value="{{ producto.cantidad }}" min="0">
+    </div>
+    <div>
+        <label for="ubicacion">Actualizar ubicación</label>
+        <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion or '' }}" placeholder="Ej: A-12">
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-success">Guardar cambios</button>
+        <a href="{{ url_for('consultar_producto') }}"><button type="button" class="btn-secondary">Volver a Consultar</button></a>
+    </div>
 </form>
-
-<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Menú</button></a>
 {% endblock %}

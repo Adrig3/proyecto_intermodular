@@ -1,21 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Consultar Producto{% endblock %}
 {% block content %}
-<h2>Consultar Producto</h2>
-<form method="POST">
-    <label for="codigo">Código</label>
-    <input type="text" id="codigo" name="codigo" placeholder="Código del producto">
-    <button type="submit" class="btn-primary">Consultar</button>
-    <button type="submit" class="btn-secondary" name="ver_todos">Ver todos</button>
+<h2 class="page-title">Consultar Producto</h2>
+<form method="POST" class="form-card">
+    <div>
+        <label for="codigo">Código del producto</label>
+        <input type="text" id="codigo" name="codigo" placeholder="Introduce el código o deja vacío para ver todos">
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-primary">Buscar</button>
+        <button type="submit" class="btn-secondary" name="ver_todos" onclick="document.getElementById('codigo').value=''">Ver todos</button>
+    </div>
 </form>
 
+{% if productos %}
+<div class="list">
 {% for p in productos %}
-<div class="producto-card">
+<div class="producto-card card">
     <p><strong>{{ p.nombre }}</strong></p>
-    <p>ID: {{ p.id }} | Cantidad: {{ p.cantidad }} | Ubicación: {{ p.ubicacion }}</p>
-    <a href="{{ url_for('detalle_producto', producto_id=p.id) }}"><button class="btn-primary">Ver detalles</button></a>
+    <p class="muted">Cantidad: {{ p.cantidad }} · Ubicación: {{ p.ubicacion or '-' }}</p>
+    <a href="{{ url_for('detalle_producto', producto_id=p.id) }}"><button class="btn-primary btn-small">Ver detalles</button></a>
 </div>
 {% endfor %}
+</div>
+{% endif %}
 
-<a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Menú</button></a>
+<div style="margin-top:1rem">
+    <a href="{{ url_for('dashboard') }}"><button class="btn-secondary">Menú</button></a>
+</div>
 {% endblock %}

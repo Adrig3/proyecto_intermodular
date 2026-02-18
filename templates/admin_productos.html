@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Gestionar Productos{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Gestionar productos</h2>
+
+<div style="margin-bottom:1rem">
+    <a href="{{ url_for('admin_panel') }}"><button class="btn-secondary">Crear nuevo producto</button></a>
+</div>
+
+{% if productos %}
+<div class="list">
+{% for p in productos %}
+    <div class="card">
+        <div class="card-row">
+            <div>
+                <strong>{{ p.nombre }}</strong><br>
+                <small class="muted">Código: {{ p.codigo }}</small>
+            </div>
+            <div class="card-actions">
+                <span class="muted">Cant: {{ p.cantidad }}</span>
+                <a href="{{ url_for('admin_edit', producto_id=p.id) }}"><button type="button" class="btn-primary btn-small">Editar</button></a>
+                <form method="POST" action="{{ url_for('admin_delete', producto_id=p.id) }}" style="display:inline">
+                    <button type="submit" class="btn-danger btn-small">Borrar</button>
+                </form>
+            </div>
+        </div>
+        <div class="card-foot">Ubicación: {{ p.ubicacion or '-' }}</div>
+    </div>
+{% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <p class="muted">No hay productos aún. <a href="{{ url_for('admin_panel') }}" class="link">Crear el primero</a></p>
+</div>
+{% endif %}
+{% endblock %}

@@ -4,20 +4,26 @@
 
 {% block content %}
 <h2>Registro de Usuario</h2>
-<form method="POST">
-    <label for="nombre">Nombre</label>
-    <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
-
-    <label for="correo">Correo</label>
-    <input type="email" id="correo" name="correo" placeholder="tu@email.com" required>
-
-    <label for="contrasena">Contraseña</label>
-    <input type="password" id="contrasena" name="contrasena" placeholder="********" required>
-
-    <label for="esAdmin">¿Es administrador?</label>
-    <input type="checkbox" id="esAdmin" name="esAdmin">
-
-    <button type="submit" class="btn-success">Registrar</button>
-    <a href="{{ url_for('login') }}"><button type="button" class="btn-secondary">Volver a Login</button></a>
+<form method="POST" class="form-card">
+    <div>
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
+    </div>
+    <div>
+        <label for="correo">Correo</label>
+        <input type="email" id="correo" name="correo" placeholder="tu@email.com" required>
+    </div>
+    <div>
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena" name="contrasena" placeholder="********" required>
+    </div>
+    <div class="form-group">
+        <input type="checkbox" id="esAdmin" name="esAdmin">
+        <label for="esAdmin">¿Es administrador?</label>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn-success">Registrar</button>
+        <a href="{{ url_for('login') }}"><button type="button" class="btn-secondary">Volver a Login</button></a>
+    </div>
 </form>
 {% endblock %}
