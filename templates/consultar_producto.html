@@ -13,7 +13,7 @@
 <div class="producto-card">
     <p><strong>{{ p.nombre }}</strong></p>
     <p>ID: {{ p.id }} | Cantidad: {{ p.cantidad }} | Ubicación: {{ p.ubicacion }}</p>
-    <a href="{{ url_for('detalle_producto', producto_id=p.id) }}"><button class="btn-primary">Ver detalle</button></a>
+    <a href="{{ url_for('detalle_producto', producto_id=p.id) }}"><button class="btn-primary">Ver detalles</button></a>
 </div>
 {% endfor %}
 

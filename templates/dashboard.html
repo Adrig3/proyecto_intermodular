@@ -7,5 +7,8 @@
     <a href="{{ url_for('consultar_producto') }}"><button class="btn-primary">Consultar producto</button></a>
     <a href="{{ url_for('historial') }}"><button class="btn-secondary">Historial</button></a>
     <a href="{{ url_for('opciones') }}"><button class="btn-secondary">Opciones</button></a>
+    {% if session.get('esAdmin') %}
+    <a href="{{ url_for('admin_panel') }}"><button class="btn-secondary">Panel Admin</button></a>
+    {% endif %}
 </div>
 {% endblock %}

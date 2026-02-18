@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Admin{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Panel Admin</h2>
+
+<section class="admin-section">
+	<h3>Añadir producto</h3>
+	<form id="create-form" method="POST" action="{{ url_for('admin_add') }}" class="form-card">
+		<label for="nombre">Nombre</label>
+		<input id="nombre" name="nombre" required>
+
+		<label for="codigo">Código</label>
+		<input id="codigo" name="codigo" required>
+
+		<label for="cantidad">Cantidad</label>
+		<input id="cantidad" name="cantidad" type="number" min="0" value="0">
+
+		<label for="ubicacion">Ubicación</label>
+		<input id="ubicacion" name="ubicacion">
+
+		<button type="submit" class="btn-success">Crear producto</button>
+	</form>
+
+	<div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
+		<button class="btn-primary" onclick="togglePanel('products-panel')">Gestionar productos</button>
+		<a href="#" class="btn-secondary" onclick="document.getElementById('create-form')?.scrollIntoView({behavior:'smooth'})">Ir a crear producto</a>
+	</div>
+
+	<div id="products-panel" class="panel" aria-hidden="true">
+		<div class="list">
+		{% for p in productos %}
+			<div class="card">
+				<div class="card-row">
+					<div>
+						<strong>{{ p.nombre }}</strong><br>
+						<small>Código: {{ p.codigo }}</small>
+					</div>
+					<div class="card-actions">
+						<span class="muted">Cant: {{ p.cantidad }}</span>
+						<a href="{{ url_for('admin_edit', producto_id=p.id) }}" class="btn-small">Editar</a>
+						<form method="POST" action="{{ url_for('admin_delete', producto_id=p.id) }}" style="display:inline">
+							<button type="submit" class="btn-danger btn-small">Borrar</button>
+						</form>
+					</div>
+				</div>
+				<div class="card-foot">Ubicación: {{ p.ubicacion or '-' }}</div>
+			</div>
+		{% else %}
+			<p>No hay productos aún.</p>
+		{% endfor %}
+		</div>
+	</div>
+</section>
+{% endblock %}

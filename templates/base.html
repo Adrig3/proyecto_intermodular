@@ -5,18 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Flask App{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+    // pequeño helper para toggles en templates
+    function togglePanel(id){
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.classList.toggle('open');
+    }
+    </script>
 </head>
 <body>
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="nav">
+                <button class="icon-btn" aria-label="menu" onclick="document.getElementById('main-submenu').classList.toggle('open')">☰</button>
+                <div class="title">Inventario</div>
+            </div>
+            <div class="actions">
+                {% if session.get('usuario_nombre') %}
+                    <div style="font-size:.95rem;margin-right:.5rem">{{ session.get('usuario_nombre') }}</div>
+                {% endif %}
+                <a href="{{ url_for('logout') }}"><button class="icon-btn">Salir</button></a>
+            </div>
+        </header>
 
-        {% block content %}{% endblock %}
+        <div id="main-submenu" class="submenu panel" aria-hidden="true" style="position:relative;margin-top:.6rem">
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <a class="link" href="{{ url_for('dashboard') }}">Inicio</a>
+                <a class="link" href="{{ url_for('consultar_producto') }}">Consultar</a>
+                <a class="link" href="{{ url_for('historial') }}">Historial</a>
+                <a class="link" href="{{ url_for('opciones') }}">Opciones</a>
+                {% if session.get('esAdmin') %}
+                    <a class="link" href="{{ url_for('admin_panel') }}">Panel Admin</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <main class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
     </div>
 </body>
 </html>

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Producto{% endblock %}
+
+{% block content %}
+<h2 class="page-title">Editar producto</h2>
+
+<form method="POST" class="form-card">
+    <label for="nombre">Nombre</label>
+    <input id="nombre" name="nombre" value="{{ producto.nombre }}" required>
+
+    <label for="codigo">Código</label>
+    <input id="codigo" name="codigo" value="{{ producto.codigo }}" required>
+
+    <label for="cantidad">Cantidad</label>
+    <input id="cantidad" name="cantidad" type="number" min="0" value="{{ producto.cantidad }}">
+
+    <label for="ubicacion">Ubicación</label>
+    <input id="ubicacion" name="ubicacion" value="{{ producto.ubicacion }}">
+
+    <button type="submit" class="btn-success">Guardar cambios</button>
+    <a href="{{ url_for('admin_panel') }}" class="btn-secondary">Volver</a>
+</form>
+
+{% endblock %}

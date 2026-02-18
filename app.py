@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from database import Base, engine, SessionLocal
 from models import Usuario, Producto
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -50,10 +50,15 @@ def login():
     if request.method == "POST":
         correo = request.form['correo']
         contrasena = request.form['contrasena']
-        session = SessionLocal()
-        usuario = session.query(Usuario).filter(Usuario.correo == correo).first()
-        session.close()
+        db = SessionLocal()
+        usuario = db.query(Usuario).filter(Usuario.correo == correo).first()
+        db.close()
         if usuario and check_password_hash(usuario.contrasena, contrasena):
+            # Guardar información mínima en la sesión de Flask
+            session['user_id'] = usuario.id
+            session['usuario_nombre'] = usuario.nombre
+            session['esAdmin'] = bool(usuario.esAdmin)
+
             flash(f"Bienvenido, {usuario.nombre}!", "success")
             return redirect(url_for("dashboard"))
         else:
@@ -67,8 +72,9 @@ def register():
         nombre = request.form['nombre']
         correo = request.form['correo']
         contrasena = generate_password_hash(request.form['contrasena'])
+        esAdmin = request.form.get('esAdmin') == 'on'
         session = SessionLocal()
-        nuevo_usuario = Usuario(nombre=nombre, correo=correo, contrasena=contrasena)
+        nuevo_usuario = Usuario(nombre=nombre, correo=correo, contrasena=contrasena, esAdmin=esAdmin)
         session.add(nuevo_usuario)
         try:
             session.commit()
@@ -84,7 +90,8 @@ def register():
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html", usuario="Usuario")
+    nombre = session.get('usuario_nombre', 'Usuario')
+    return render_template("dashboard.html", usuario=nombre)
 
 
 @app.route("/productos/consultar", methods=["GET", "POST"])
@@ -210,8 +217,172 @@ def opciones():
 
 @app.route('/logout')
 def logout():
+    # Limpiar sesión y redirigir
+    session.clear()
     flash('Sesión cerrada', 'success')
     return redirect(url_for('login'))
+
+
+@app.route('/admin')
+def admin_panel():
+    # Acceso prohibido si usuario no autenticado o no administrador
+    if not session.get('user_id') or not session.get('esAdmin'):
+        flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
+        return redirect(url_for('login'))
+    # Listar productos para el panel de administración
+    db = SessionLocal()
+    productos = db.query(Producto).all()
+    productos_data = [SimpleNamespace(id=p.id, nombre=p.nombre, codigo=p.codigo,
+                                       cantidad=p.cantidad, ubicacion=p.ubicacion) for p in productos]
+    db.close()
+    return render_template('admin.html', productos=productos_data)
+
+
+@app.route('/admin/add', methods=['POST'])
+def admin_add():
+    # Crear nuevo producto (sólo admin)
+    if not session.get('user_id') or not session.get('esAdmin'):
+        flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
+        return redirect(url_for('login'))
+
+    nombre = request.form.get('nombre')
+    codigo = request.form.get('codigo')
+    cantidad_raw = request.form.get('cantidad')
+    ubicacion = request.form.get('ubicacion')
+
+    try:
+        cantidad = int(cantidad_raw) if cantidad_raw not in (None, '') else 0
+    except ValueError:
+        flash('Cantidad inválida', 'danger')
+        return redirect(url_for('admin_panel'))
+
+    db = SessionLocal()
+    # comprobar existencia de código único
+    existing = db.query(Producto).filter(Producto.codigo == codigo).first()
+    if existing:
+        db.close()
+        flash('Código ya existe', 'danger')
+        return redirect(url_for('admin_panel'))
+
+    nuevo = Producto(nombre=nombre, codigo=codigo, cantidad=cantidad, ubicacion=ubicacion)
+    db.add(nuevo)
+    try:
+        db.commit()
+        # historial
+        write_historial({
+            'timestamp': now_iso(),
+            'action': 'crear',
+            'producto_id': nuevo.id,
+            'codigo': codigo,
+            'nombre': nombre,
+            'old_cantidad': '',
+            'new_cantidad': cantidad,
+            'old_ubicacion': '',
+            'new_ubicacion': ubicacion,
+            'results_count': '',
+        })
+        flash('Producto creado', 'success')
+    except Exception as e:
+        db.rollback()
+        flash(f'Error creando producto: {e}', 'danger')
+    finally:
+        db.close()
+
+    return redirect(url_for('admin_panel'))
+
+
+@app.route('/admin/editar/<int:producto_id>', methods=['GET', 'POST'])
+def admin_edit(producto_id):
+    if not session.get('user_id') or not session.get('esAdmin'):
+        flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    producto = db.query(Producto).filter(Producto.id == producto_id).first()
+    if not producto:
+        db.close()
+        flash('Producto no encontrado', 'danger')
+        return redirect(url_for('admin_panel'))
+
+    if request.method == 'POST':
+        old_cantidad = producto.cantidad
+        old_ubicacion = producto.ubicacion
+        producto.nombre = request.form.get('nombre')
+        producto.codigo = request.form.get('codigo')
+        cantidad_raw = request.form.get('cantidad')
+        try:
+            producto.cantidad = int(cantidad_raw) if cantidad_raw not in (None, '') else 0
+        except ValueError:
+            db.close()
+            flash('Cantidad inválida', 'danger')
+            return redirect(url_for('admin_edit', producto_id=producto_id))
+        producto.ubicacion = request.form.get('ubicacion')
+
+        try:
+            db.commit()
+            write_historial({
+                'timestamp': now_iso(),
+                'action': 'actualizar_admin',
+                'producto_id': producto.id,
+                'codigo': producto.codigo,
+                'nombre': producto.nombre,
+                'old_cantidad': old_cantidad,
+                'new_cantidad': producto.cantidad,
+                'old_ubicacion': old_ubicacion,
+                'new_ubicacion': producto.ubicacion,
+                'results_count': '',
+            })
+            flash('Producto actualizado', 'success')
+        except Exception as e:
+            db.rollback()
+            flash(f'Error actualizando producto: {e}', 'danger')
+        finally:
+            db.close()
+        return redirect(url_for('admin_panel'))
+
+    # GET -> mostrar formulario
+    producto_obj = SimpleNamespace(id=producto.id, nombre=producto.nombre, codigo=producto.codigo,
+                                   cantidad=producto.cantidad, ubicacion=producto.ubicacion)
+    db.close()
+    return render_template('admin_edit.html', producto=producto_obj)
+
+
+@app.route('/admin/borrar/<int:producto_id>', methods=['POST'])
+def admin_delete(producto_id):
+    if not session.get('user_id') or not session.get('esAdmin'):
+        flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    producto = db.query(Producto).filter(Producto.id == producto_id).first()
+    if not producto:
+        db.close()
+        flash('Producto no encontrado', 'danger')
+        return redirect(url_for('admin_panel'))
+
+    try:
+        db.delete(producto)
+        db.commit()
+        write_historial({
+            'timestamp': now_iso(),
+            'action': 'borrar',
+            'producto_id': producto_id,
+            'codigo': producto.codigo,
+            'nombre': producto.nombre,
+            'old_cantidad': producto.cantidad,
+            'new_cantidad': '',
+            'old_ubicacion': producto.ubicacion,
+            'new_ubicacion': '',
+            'results_count': '',
+        })
+        flash('Producto eliminado', 'success')
+    except Exception as e:
+        db.rollback()
+        flash(f'Error borrando producto: {e}', 'danger')
+    finally:
+        db.close()
+
+    return redirect(url_for('admin_panel'))
 
 
 if __name__ == "__main__":
