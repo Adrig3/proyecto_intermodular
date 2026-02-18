@@ -1,3 +1,4 @@
 ./entorno
 .env
 ./__pycache__
+historial.csv

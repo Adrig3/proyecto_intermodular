@@ -34,3 +34,8 @@ timestamp,action,producto_id,codigo,nombre,old_cantidad,new_cantidad,old_ubicaci
 2026-02-18T14:43:54.424210,consultar,,ALL,,,,,,2
 2026-02-18T14:43:57.916328,ver_detalle,2,TEST-0002,Prueba 2,,,,,
 2026-02-18T14:44:01.404236,actualizar,2,TEST-0002,Prueba 2,67,3,Almacén B - Estantería 3,Almacén B - Estantería 3,
+2026-02-18T14:48:08.154735,crear,3,TEST-0003,Test3,,2,,A-12,
+2026-02-18T14:48:26.552729,borrar,3,TEST-0003,Test3,2,,A-12,,
+2026-02-18T14:48:38.350817,consultar,,TEST-0002,,,,,,1
+2026-02-18T14:48:39.706164,ver_detalle,2,TEST-0002,Prueba 2,,,,,
+2026-02-18T14:48:42.312702,consultar,,ALL,,,,,,2
