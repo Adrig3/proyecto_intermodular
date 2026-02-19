@@ -1,21 +1,31 @@
-/* --- Material Design 3 - Inventario Almacén (mobile-first) --- */
+/*
+ * Hoja de estilos principal - Sistema de inventario de almacén
+ *
+ * Diseño mobile-first basado en Material Design 3.
+ * Usa variables CSS en :root para colores, radios, elevaciones y transiciones.
+ * Fuente: DM Sans (Google Fonts).
+ */
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
+/*
+ * Variables CSS (custom properties)
+ * Definidas en :root para reutilizar en toda la aplicación.
+ * Primary: azul (logística). Secondary: teal (acentos). Surface/Background: grises neutros.
+ * Elevation: sombras. Radius: bordes redondeados. Motion: duración y easing de transiciones.
+ */
 :root {
-    /* Primary - azul profundo, confiable para logística */
     --mdc-primary: #1565c0;
     --mdc-primary-container: #bbdefb;
     --mdc-primary-variant: #0d47a1;
     --mdc-on-primary: #ffffff;
     --mdc-on-primary-container: #0d47a1;
-    
-    /* Secondary / Accent - teal, fresco y moderno */
+
     --mdc-secondary: #00897b;
     --mdc-secondary-container: #b2dfdb;
     --mdc-on-secondary: #ffffff;
     --mdc-on-secondary-container: #004d40;
-    
-    /* Surface & Background */
+
     --mdc-surface: #ffffff;
     --mdc-surface-variant: #f1f5f9;
     --mdc-background: #eef2f7;
@@ -23,16 +33,14 @@
     --mdc-on-surface-variant: #475569;
     --mdc-outline: #cbd5e1;
     --mdc-outline-variant: #e2e8f0;
-    
-    /* Error & Success */
+
     --mdc-error: #b91c1c;
     --mdc-error-container: #fee2e2;
     --mdc-on-error: #ffffff;
     --mdc-success: #047857;
     --mdc-success-container: #d1fae5;
     --mdc-on-success: #ffffff;
-    
-    /* Elevation & Radius */
+
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
@@ -42,8 +50,7 @@
     --elevation-2: 0 4px 16px rgba(15, 23, 36, 0.1);
     --elevation-3: 0 8px 24px rgba(15, 23, 36, 0.12);
     --elevation-fab: 0 8px 24px rgba(21, 101, 192, 0.35);
-    
-    /* Transitions */
+
     --motion-duration-short: 0.15s;
     --motion-duration-medium: 0.25s;
     --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
@@ -51,6 +58,12 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
+
+/*
+ * Contenedor base del body
+ * font-family: DM Sans. background y color desde variables.
+ * -webkit-font-smoothing / -moz-osx-font-smoothing: antialiasing para mejorar legibilidad de fuentes.
+ */
 body {
     font-family: 'DM Sans', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: var(--mdc-background);
@@ -68,7 +81,11 @@ body {
     background: transparent;
 }
 
-/* ========== Top App Bar (Material Design) ========== */
+/*
+ * Top App Bar (barra superior estilo Material Design)
+ * Flexbox para alinear título y acciones. Gradiente de fondo, sombra de elevación.
+ * ::before añade un overlay luminoso sutil para profundidad.
+ */
 .topbar {
     display: flex;
     align-items: center;
@@ -95,7 +112,10 @@ body {
 }
 .topbar .actions { display: flex; gap: 0.5rem; align-items: center; }
 
-/* Icon buttons - Material style */
+/*
+ * Icon buttons (botones de icono estilo Material)
+ * Fondo transparente, transición suave en hover/active.
+ */
 .icon-btn {
     background: transparent;
     border: none;
@@ -114,7 +134,10 @@ body {
     background: rgba(255, 255, 255, 0.08);
 }
 
-/* Salir / Logout - destaca en topbar, bien en móvil */
+/*
+ * Botón Cerrar Sesión en la topbar
+ * Destaca con fondo blanco sobre el gradiente. min-height 44px recomendado para touch (accesibilidad).
+ */
 .topbar .btn-logout-link {
     text-decoration: none;
     display: flex;
@@ -145,7 +168,10 @@ body {
     transform: scale(0.98);
 }
 
-/* Asegurar que en móvil el botón Salir no se corte */
+/*
+ * Ajustes responsive para pantallas muy pequeñas (móvil)
+ * Reduce padding y tamaño de fuente para evitar cortes en el botón Salir.
+ */
 @media (max-width: 400px) {
     .topbar {
         padding: 0.75rem 0.75rem;
@@ -159,7 +185,10 @@ body {
     }
 }
 
-/* ========== Main Container ========== */
+/*
+ * Contenedor principal del contenido
+ * Fondo surface, bordes redondeados, sombra ligera y borde sutil.
+ */
 .container {
     margin-top: 1.25rem;
     background: var(--mdc-surface);
@@ -177,7 +206,11 @@ h2.page-title {
     letter-spacing: -0.02em;
 }
 
-/* ========== Forms (Material Filled/Outlined style) ========== */
+/*
+ * Formularios (estilo Material Filled/Outlined)
+ * form-card: contenedor con gap entre campos. form-field: etiqueta + input.
+ * Inputs: border 2px, transición en focus. focus: borde primary + box-shadow de anillo.
+ */
 .form-card {
     display: flex;
     flex-direction: column;
@@ -235,7 +268,10 @@ textarea::placeholder {
     opacity: 0.7;
 }
 
-/* Checkbox styling */
+/*
+ * Checkbox: accent-color para que el color de acento coincida con el tema.
+ * form-group: alinea checkbox y label horizontalmente.
+ */
 input[type=checkbox] {
     width: 1.25rem;
     height: 1.25rem;
@@ -253,7 +289,11 @@ input[type=checkbox] {
     cursor: pointer;
 }
 
-/* ========== Buttons (Material Design Filled/Tonal) ========== */
+/*
+ * Botones (Material Filled y Tonal)
+ * min-height 44px: tamaño mínimo táctil recomendado (WCAG).
+ * btn-primary: gradiente. btn-secondary: tonal. btn-success/btn-danger: semánticos.
+ */
 button, .btn {
     border: none;
     border-radius: var(--radius-md);
@@ -268,7 +308,7 @@ button, .btn {
     justify-content: center;
     gap: 0.5rem;
     text-decoration: none;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px;
 }
 button:disabled, .btn:disabled {
     opacity: 0.5;
@@ -324,7 +364,10 @@ button:disabled, .btn:disabled {
     border-radius: var(--radius-sm);
 }
 
-/* Button group (dashboard, etc) */
+/*
+ * Grupo de botones (dashboard, formularios)
+ * Columna en móvil, fila en pantallas >= 600px (ver media queries).
+ */
 .button-group {
     display: flex;
     flex-direction: column;
@@ -341,7 +384,10 @@ button:disabled, .btn:disabled {
     justify-content: center;
 }
 
-/* ========== Flash Messages ========== */
+/*
+ * Mensajes flash (éxito, error)
+ * success: fondo verde claro. danger: fondo rojo claro.
+ */
 .flash {
     padding: 0.875rem 1rem;
     border-radius: var(--radius-md);
@@ -363,7 +409,11 @@ button:disabled, .btn:disabled {
     border: 1px solid rgba(185, 28, 28, 0.2);
 }
 
-/* ========== Cards (Producto, Admin) ========== */
+/*
+ * Cards / Tarjetas de producto
+ * list: contenedor flex/grid. producto-card: tarjeta con datos de producto.
+ * card-row: fila con contenido y acciones. card-foot: pie con info secundaria.
+ */
 .list {
     display: flex;
     flex-direction: column;
@@ -408,7 +458,6 @@ button:disabled, .btn:disabled {
     border-top: 1px solid var(--mdc-outline-variant);
 }
 
-/* Producto card específico */
 .producto-card {
     display: flex;
     flex-direction: column;
@@ -422,7 +471,10 @@ button:disabled, .btn:disabled {
     color: var(--mdc-on-surface);
 }
 
-/* ========== Floating Action Button ========== */
+/*
+ * Floating Action Button (FAB)
+ * Posición fija abajo-derecha. Gradiente primary. Escala al hover.
+ */
 .fab {
     position: fixed;
     right: 1rem;
@@ -446,7 +498,10 @@ button:disabled, .btn:disabled {
     box-shadow: 0 12px 32px rgba(21, 101, 192, 0.4);
 }
 
-/* ========== Panels (collapsible) ========== */
+/*
+ * Paneles colapsables
+ * max-height: 0 para cerrado, 2000px para abierto. Transición suave.
+ */
 .panel {
     max-height: 0;
     overflow: hidden;
@@ -457,7 +512,10 @@ button:disabled, .btn:disabled {
     padding-top: 1rem;
 }
 
-/* ========== Navigation / Submenu ========== */
+/*
+ * Navegación y submenú
+ * submenu.panel: colapsable para menú hamburguesa en móvil.
+ */
 .nav {
     display: flex;
     gap: 0.5rem;
@@ -507,7 +565,10 @@ button:disabled, .btn:disabled {
     background: var(--mdc-primary-container);
 }
 
-/* ========== Admin Section ========== */
+/*
+ * Sección admin
+ * Separación visual para formularios de administración.
+ */
 .admin-section {
     margin-top: 1rem;
 }
@@ -518,7 +579,11 @@ button:disabled, .btn:disabled {
     margin-bottom: 0.75rem;
 }
 
-/* ========== Historial - Tabla ========== */
+/*
+ * Tabla del historial
+ * table-wrapper: overflow auto para scroll horizontal en móvil.
+ * -webkit-overflow-scrolling: touch mejora el scroll en iOS.
+ */
 .table-wrapper {
     margin-top: 1rem;
     overflow: auto;
@@ -550,7 +615,6 @@ button:disabled, .btn:disabled {
     background: var(--mdc-surface-variant);
 }
 
-/* ========== Form layout improvements ========== */
 .form-actions {
     display: flex;
     flex-wrap: wrap;
@@ -558,7 +622,11 @@ button:disabled, .btn:disabled {
     margin-top: 1rem;
 }
 
-/* ========== Responsive ========== */
+/*
+ * Media queries responsive
+ * 600px: botones en fila. 720px: grid 2 columnas en listas, más padding. 1000px: grid 3 columnas.
+ * 700px max: tabla con min-width para scroll horizontal en móvil.
+ */
 @media (min-width: 600px) {
     .button-group {
         flex-direction: row;

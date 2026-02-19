@@ -1,3 +1,16 @@
+"""
+Aplicación Flask para gestión de inventario de almacén.
+
+Permite a usuarios autenticados consultar, actualizar y gestionar productos.
+Los administradores pueden crear, editar y eliminar productos.
+Todas las acciones relevantes se registran en historial.csv para auditoría.
+
+Librerías principales:
+- Flask: framework web (rutas, renderizado, sesiones, mensajes flash)
+- SQLAlchemy: ORM para acceso a base de datos
+- Werkzeug: hashing seguro de contraseñas (generate_password_hash, check_password_hash)
+- types.SimpleNamespace: objetos ligeros para pasar datos a templates sin objetos ORM
+"""
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from database import Base, engine, SessionLocal
 from models import Usuario, Producto
@@ -10,17 +23,25 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# Crear tablas al iniciar
 Base.metadata.create_all(bind=engine)
 
 
-# Helpers para historial
 def now_iso():
+    """
+    Devuelve la fecha/hora actual en formato ISO 8601 (UTC).
+    Usado como timestamp para cada entrada del historial de auditoría.
+    """
     return datetime.utcnow().isoformat()
 
 
 def write_historial(row_dict):
-    """Append a row to historial.csv creating header if needed."""
+    """
+    Añade una fila al archivo historial.csv, creando la cabecera si el archivo no existe.
+
+    row_dict: diccionario con claves timestamp, action, producto_id, codigo, nombre,
+              old_cantidad, new_cantidad, old_ubicacion, new_ubicacion, results_count.
+    Si falla la escritura, se imprime el error pero la app continúa (no bloquea la operación).
+    """
     csv_path = os.path.join(os.path.dirname(__file__), 'historial.csv')
     fieldnames = [
         'timestamp', 'action', 'producto_id', 'codigo', 'nombre',
@@ -35,18 +56,22 @@ def write_historial(row_dict):
             row = {k: row_dict.get(k, '') for k in fieldnames}
             writer.writerow(row)
     except Exception as e:
-        # no queremos que falle la app si no podemos escribir el historial
         print(f"Error escribiendo historial: {e}")
 
 
-# Rutas
 @app.route("/")
 def home():
+    """Redirige la ruta raíz a la página de login."""
     return redirect(url_for("login"))
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """
+    Gestiona inicio de sesión: GET muestra el formulario, POST valida credenciales.
+    Usa check_password_hash (Werkzeug) para comparar contraseña en texto plano con el hash guardado.
+    Al autenticarse correctamente, guarda user_id, nombre y esAdmin en session de Flask.
+    """
     if request.method == "POST":
         correo = request.form['correo']
         contrasena = request.form['contrasena']
@@ -54,7 +79,6 @@ def login():
         usuario = db.query(Usuario).filter(Usuario.correo == correo).first()
         db.close()
         if usuario and check_password_hash(usuario.contrasena, contrasena):
-            # Guardar información mínima en la sesión de Flask
             session['user_id'] = usuario.id
             session['usuario_nombre'] = usuario.nombre
             session['esAdmin'] = bool(usuario.esAdmin)
@@ -68,51 +92,60 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """
+    Registro de nuevos usuarios. POST crea el usuario con contraseña hasheada
+    (generate_password_hash) y redirige a login. El checkbox esAdmin define si es administrador.
+    """
     if request.method == "POST":
         nombre = request.form['nombre']
         correo = request.form['correo']
         contrasena = generate_password_hash(request.form['contrasena'])
         esAdmin = request.form.get('esAdmin') == 'on'
-        session = SessionLocal()
+        db_session = SessionLocal()
         nuevo_usuario = Usuario(nombre=nombre, correo=correo, contrasena=contrasena, esAdmin=esAdmin)
-        session.add(nuevo_usuario)
+        db_session.add(nuevo_usuario)
         try:
-            session.commit()
+            db_session.commit()
             flash("Registro exitoso", "success")
             return redirect(url_for("login"))
         except Exception as e:
-            session.rollback()
+            db_session.rollback()
             flash(f"Error: {str(e)}", "danger")
         finally:
-            session.close()
+            db_session.close()
     return render_template("register.html")
 
 
 @app.route("/dashboard")
 def dashboard():
+    """Muestra el menú principal con opciones: consultar, historial, opciones y (si admin) panel admin."""
     nombre = session.get('usuario_nombre', 'Usuario')
     return render_template("dashboard.html", usuario=nombre)
 
 
 @app.route("/productos/consultar", methods=["GET", "POST"])
 def consultar_producto():
-    session = SessionLocal()
+    """
+    Búsqueda de productos: por código (POST) o lista todos si el campo está vacío.
+    Usa SimpleNamespace para pasar datos a la plantilla sin objetos SQLAlchemy,
+    evitando DetachedInstanceError al cerrar la sesión antes del render.
+    Registra cada consulta en el historial.
+    """
+    db = SessionLocal()
     productos_data = []
     results_count = 0
     if request.method == "POST":
         codigo = request.form.get("codigo")
         if codigo:
-            productos = session.query(Producto).filter(Producto.codigo == codigo).all()
+            productos = db.query(Producto).filter(Producto.codigo == codigo).all()
         else:
-            productos = session.query(Producto).all()
+            productos = db.query(Producto).all()
 
-        # Construir una lista ligera para renderizado y evitar DetachedInstanceError
         for p in productos:
             productos_data.append(SimpleNamespace(id=p.id, nombre=p.nombre, codigo=p.codigo,
                                                    cantidad=p.cantidad, ubicacion=p.ubicacion))
         results_count = len(productos_data)
 
-        # Guardar en historial la consulta
         write_historial({
             'timestamp': now_iso(),
             'action': 'consultar',
@@ -126,20 +159,23 @@ def consultar_producto():
             'results_count': results_count,
         })
 
-    session.close()
+    db.close()
     return render_template("consultar_producto.html", productos=productos_data)
 
 
 @app.route("/productos/<int:producto_id>", methods=["GET", "POST"])
 def detalle_producto(producto_id):
-    session = SessionLocal()
-    producto = session.query(Producto).filter(Producto.id == producto_id).first()
+    """
+    Muestra detalle de un producto y permite actualizar cantidad y ubicación (POST).
+    GET registra la vista en historial. POST valida cantidad numérica y persiste cambios.
+    """
+    db = SessionLocal()
+    producto = db.query(Producto).filter(Producto.id == producto_id).first()
     if not producto:
-        session.close()
+        db.close()
         flash("Producto no encontrado", "danger")
         return redirect(url_for("consultar_producto"))
 
-    # Registrar vista de detalle como consulta (GET)
     if request.method == "GET":
         write_historial({
             'timestamp': now_iso(),
@@ -166,15 +202,14 @@ def detalle_producto(producto_id):
                 flash("Cantidad inválida", "danger")
                 producto_obj = SimpleNamespace(id=producto.id, nombre=producto.nombre,
                                                ubicacion=producto.ubicacion, cantidad=producto.cantidad)
-                session.close()
+                db.close()
                 return render_template("detalle_producto.html", producto=producto_obj)
 
         ubicacion_raw = request.form.get("ubicacion")
         if ubicacion_raw is not None:
             producto.ubicacion = ubicacion_raw
 
-        session.commit()
-        # Guardar en historial la actualización
+        db.commit()
         write_historial({
             'timestamp': now_iso(),
             'action': 'actualizar',
@@ -191,12 +226,16 @@ def detalle_producto(producto_id):
 
     producto_obj = SimpleNamespace(id=producto.id, nombre=producto.nombre,
                                    ubicacion=producto.ubicacion, cantidad=producto.cantidad)
-    session.close()
+    db.close()
     return render_template("detalle_producto.html", producto=producto_obj)
 
 
 @app.route('/historial')
 def historial():
+    """
+    Muestra el contenido de historial.csv en una tabla.
+    csv.DictReader permite leer filas como diccionarios usando la primera fila como claves.
+    """
     csv_path = os.path.join(os.path.dirname(__file__), 'historial.csv')
     rows = []
     if os.path.exists(csv_path):
@@ -212,12 +251,13 @@ def historial():
 
 @app.route('/opciones')
 def opciones():
+    """Página de opciones del usuario (información y enlaces de vuelta/cerrar sesión)."""
     return render_template('opciones.html')
 
 
 @app.route('/logout')
 def logout():
-    # Limpiar sesión y redirigir
+    """Limpia la sesión de Flask (session.clear) y redirige al login."""
     session.clear()
     flash('Sesión cerrada', 'success')
     return redirect(url_for('login'))
@@ -225,7 +265,7 @@ def logout():
 
 @app.route('/admin')
 def admin_panel():
-    # Acceso prohibido si usuario no autenticado o no administrador
+    """Panel de administración: solo accesible si el usuario está autenticado y esAdmin."""
     if not session.get('user_id') or not session.get('esAdmin'):
         flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
         return redirect(url_for('login'))
@@ -234,7 +274,10 @@ def admin_panel():
 
 @app.route('/admin/productos')
 def admin_productos():
-    """Pantalla dedicada para gestionar (listar, editar, borrar) todos los productos."""
+    """
+    Lista todos los productos para gestión (editar, borrar).
+    Solo administradores. Usa SimpleNamespace para evitar DetachedInstanceError.
+    """
     if not session.get('user_id') or not session.get('esAdmin'):
         flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
         return redirect(url_for('login'))
@@ -248,7 +291,10 @@ def admin_productos():
 
 @app.route('/admin/add', methods=['POST'])
 def admin_add():
-    # Crear nuevo producto (sólo admin)
+    """
+    Crea un nuevo producto. Valida que el código sea único.
+    Registra la acción 'crear' en el historial.
+    """
     if not session.get('user_id') or not session.get('esAdmin'):
         flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
         return redirect(url_for('login'))
@@ -265,7 +311,6 @@ def admin_add():
         return redirect(url_for('admin_panel'))
 
     db = SessionLocal()
-    # comprobar existencia de código único
     existing = db.query(Producto).filter(Producto.codigo == codigo).first()
     if existing:
         db.close()
@@ -276,7 +321,6 @@ def admin_add():
     db.add(nuevo)
     try:
         db.commit()
-        # historial
         write_historial({
             'timestamp': now_iso(),
             'action': 'crear',
@@ -301,6 +345,10 @@ def admin_add():
 
 @app.route('/admin/editar/<int:producto_id>', methods=['GET', 'POST'])
 def admin_edit(producto_id):
+    """
+    Edita un producto existente. GET muestra formulario con datos actuales.
+    POST actualiza todos los campos y registra en historial con action 'actualizar_admin'.
+    """
     if not session.get('user_id') or not session.get('esAdmin'):
         flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
         return redirect(url_for('login'))
@@ -348,7 +396,6 @@ def admin_edit(producto_id):
             db.close()
         return redirect(url_for('admin_productos'))
 
-    # GET -> mostrar formulario
     producto_obj = SimpleNamespace(id=producto.id, nombre=producto.nombre, codigo=producto.codigo,
                                    cantidad=producto.cantidad, ubicacion=producto.ubicacion)
     db.close()
@@ -357,6 +404,10 @@ def admin_edit(producto_id):
 
 @app.route('/admin/borrar/<int:producto_id>', methods=['POST'])
 def admin_delete(producto_id):
+    """
+    Elimina un producto de la base de datos.
+    Registra la acción 'borrar' en historial con los datos previos a la eliminación.
+    """
     if not session.get('user_id') or not session.get('esAdmin'):
         flash('Acceso denegado: se requiere privilegios de administrador', 'danger')
         return redirect(url_for('login'))
